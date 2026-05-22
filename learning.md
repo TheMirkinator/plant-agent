@@ -43,6 +43,8 @@ A fully functional AI plant care agent running 24/7 on Render that:
 - Tracks 40+ plants with watering schedules
 - Uses Claude AI with custom system prompt and soil metrics
 - Executes tools to update database based on user actions
+- Analyzes plant photos uploaded via Telegram (identifies plants, detects diseases, recommends treatments)
+- Integrates real-time weather data with 30-minute caching
 
 ### The 5 Phases
 
@@ -137,6 +139,23 @@ Created modular structure:
 - **2 Telegram integrations** (notifications + chat)
 - **1 cloud deployment** (Render)
 - **0 dollars spent** (free tier)
+- **2 external APIs** integrated (OpenWeather + Telegram)
+- **6 Python modules** (organized, modular code)
 
 ### Conclusion
 Built a production-ready AI agent from scratch. Learned that modern AI isn't about one big model—it's about architecture: combining LLMs with databases, scheduling, and APIs. The bot is simple in concept but demonstrates every major pattern used in real AI products.
+
+**Enhancement 1: Weather Tracking**
+- Integrated OpenWeather API for 7-day forecasts
+- Implemented smart caching (30-minute cache to avoid API limits)
+- Claude now adjusts watering recommendations based on rain/temperature/humidity
+- Learned: API integration, rate limiting, caching strategies, context enrichment
+- Key insight: External data APIs make AI recommendations smarter and more actionable
+
+**Enhancement 2: Plant Image Analysis**
+- Added Telegram image upload support
+- User sends plant photo → Claude analyzes it
+- Claude identifies plant type, detects diseases/pests, recommends treatments
+- Implemented base64 image conversion and Claude's vision capabilities
+- Learned: File handling, base64 encoding, Claude's multimodal (text + image) capabilities
+- Key insight: Vision AI unlocks real-world applications (diagnosis, monitoring, identification)
