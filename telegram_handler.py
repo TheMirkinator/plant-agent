@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 import os
 from database import build_plant_context
 from prompts import PLANT_CARE_SYSTEM, USER_CONFIG
+from weather import get_watering_adjustment
 
 load_dotenv()
 
@@ -49,9 +50,13 @@ def send_telegram_response(message):
 
 def process_telegram_message(user_message):
     """Process a Telegram message with Claude."""
+    
     plant_context = build_plant_context()
+    weather_data = get_watering_adjustment()  # Gets cached or fresh if old
+    
     system_prompt = PLANT_CARE_SYSTEM.format(
         plant_context=plant_context,
+        weather_data=weather_data,
         **USER_CONFIG
     )
     try:

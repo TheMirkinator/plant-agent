@@ -5,6 +5,8 @@ from logging_setup import logger
 from anthropic import Anthropic
 from dotenv import load_dotenv
 from telegram_notifications import send_telegram_message
+from weather import get_current_weather
+
 
 load_dotenv()
 client = Anthropic()
@@ -14,6 +16,9 @@ last_notification = {"time": None, "message": None}
 
 def check_plants_daily():
     """Daily task: Check which plants need water and generate a notification."""
+    # Force refresh weather at 8 AM
+    get_current_weather(force_refresh=True)
+    
     plants_needing_water = get_plants_needing_water()
     
     if not plants_needing_water:
