@@ -6,6 +6,7 @@ import os
 from database import build_plant_context
 from prompts import PLANT_CARE_SYSTEM, USER_CONFIG
 from weather import get_watering_adjustment
+from image_handler import download_telegram_image, analyze_plant_image
 
 load_dotenv()
 
@@ -74,18 +75,42 @@ def process_telegram_message(user_message):
 def handle_telegram_messages():
     """Poll for messages and process them."""
     global last_update_id
+    
     updates = get_telegram_updates()
+    processed_ids = set()
     
     for update in updates:
         update_id = update["update_id"]
-        if update_id <= last_update_id:
+        
+        if update_id <= last_update_id or update_id in processed_ids:
             continue
+        
+        processed_ids.add(update_id)
         last_update_id = update_id
         
         if "message" in update:
             message = update["message"]
+            
+            # Handle text messages
             user_message = message.get("text", "")
             if user_message:
                 logger.info(f"Telegram message received: {user_message}")
                 response = process_telegram_message(user_message)
                 send_telegram_response(response)
+            
+            # Handle image messages
+            elif "photo" in message:
+                logger.info("Plant image received")
+                
+                # Get the highest quality photo
+                photos = message["photo"]
+                file_id = photos[-1]["file_id"]
+                
+                # Download and analyze
+                base64_image = download_telegram_image(file_id)
+                
+                if base64_image:
+                    analysis = analyze_plant_image(base64_image)
+                    send_telegram_response(f"🌿 Plant Analysis:\n\n{analysis}")
+                else:
+                    send_telegram_response("Sorry, I couldn't download the image. Try again!")
