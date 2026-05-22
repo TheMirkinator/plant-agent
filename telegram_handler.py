@@ -1,4 +1,5 @@
 import requests
+import time
 from logging_setup import logger
 from anthropic import Anthropic
 from dotenv import load_dotenv
@@ -97,16 +98,13 @@ def handle_telegram_messages():
                 logger.info(f"Telegram message received: {user_message}")
                 response = process_telegram_message(user_message)
                 send_telegram_response(response)
+                time.sleep(1)  # Add 1 second delay between messages
             
             # Handle image messages
             elif "photo" in message:
                 logger.info("Plant image received")
-                
-                # Get the highest quality photo
                 photos = message["photo"]
                 file_id = photos[-1]["file_id"]
-                
-                # Download and analyze
                 base64_image = download_telegram_image(file_id)
                 
                 if base64_image:
@@ -114,3 +112,5 @@ def handle_telegram_messages():
                     send_telegram_response(f"🌿 Plant Analysis:\n\n{analysis}")
                 else:
                     send_telegram_response("Sorry, I couldn't download the image. Try again!")
+                
+                time.sleep(1)  # Add 1 second delay between images

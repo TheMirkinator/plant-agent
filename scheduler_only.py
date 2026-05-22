@@ -14,7 +14,7 @@ scheduler = start_scheduler()
 try:
     while True:
         handle_telegram_messages()  # Check for new messages every 2 seconds
-        time.sleep(2)
+        time.sleep(5)
 except KeyboardInterrupt:
     scheduler.shutdown()
     print("Scheduler stopped.")
