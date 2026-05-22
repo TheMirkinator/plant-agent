@@ -1,3 +1,10 @@
 🌿 Plant Assistant — type 'quit' to exit
 
-You: 
+You: Traceback (most recent call last):
+  File "/Users/danielmirkin/plant-agent/plant_chat.py", line 221, in <module>
+    except Exception as e:
+^^^^^^
+  File "/Users/danielmirkin/plant-agent/plant_chat.py", line 130, in chat
+    messages = []
+                  
+EOFError: EOF when reading a line

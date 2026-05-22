@@ -26,4 +26,10 @@ Claude now sees the user's specific context and can give personalized advice.
 Next: Tool use — letting Claude modify the database.
 
 ## Tool creation and usage
-Created a set of tools for the bot to use when a related text was provided by the user. We have an add plant tool tghat adds plant names, both regular and scientific as well as how often they need to be watered into the databse. Also we have tools to edit watering days in the db. I learned that this can be helpful for the LLM to keep track of data across conversations. The bot can now take actions not just return text. Also increased max tokens to 2048. 
+Created a set of tools for the bot to use when a related text was provided by the user. We have an add plant tool that adds plant names, both regular and scientific as well as how often they need to be watered into the databse. Also we have tools to edit watering days in the db. I learned that this can be helpful for the LLM to keep track of data across conversations. The bot can now take actions not just return text. Also increased max tokens to 2048. 
+
+## Day 4: Proactive Agent with Scheduling
+Built a background scheduler using APScheduler.
+Bot now proactively checks plants daily at 8 AM and generates personalized notifications.
+Learned: Proactive agents initiate action; reactive agents respond to user input.
+Next: Phase 5 — Telegram integration (deploy bot to Telegram so it actually sends notifications).
