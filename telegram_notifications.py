@@ -32,3 +32,5 @@ def send_telegram_message(message):
     except Exception as e:
         logger.error(f"Failed to send Telegram message: {e}")
         return False
+    
+    
