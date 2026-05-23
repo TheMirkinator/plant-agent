@@ -57,10 +57,9 @@ def start_scheduler():
     # Run daily at 7:30 AM
     scheduler.add_job(
         check_plants_daily,
-        trigger=CronTrigger(hour=7, minute=30),
+        trigger=CronTrigger(hour=7, minute=30, timezone='America/New_York'),
         id='daily_plant_check',
         name='Daily plant water check',
-        timezone='America/New_York',
         replace_existing=True
     )
     
