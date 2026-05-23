@@ -1,3 +1,4 @@
+from apscheduler import job
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 from database import get_plants_needing_water
@@ -64,7 +65,7 @@ def start_scheduler():
     )
     
     scheduler.start()
-    logger.info("Scheduler started - will check plants daily at 7:30 AM")
+    logger.info(f"Next scheduled run: {job.next_run_time}")
     
     return scheduler
 
