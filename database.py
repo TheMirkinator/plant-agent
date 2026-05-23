@@ -4,23 +4,40 @@ from datetime import datetime
 DB_PATH = "plants.db"
 
 def init_db():
-    """Create the database and tables."""
-    conn = sqlite3.connect(DB_PATH)
-    conn.execute("""CREATE TABLE IF NOT EXISTS plants (
-        id INTEGER PRIMARY KEY,
-        name TEXT UNIQUE NOT NULL,
-        species TEXT,
-        last_watered TEXT,
-        water_freq_days INTEGER DEFAULT 7,
-        notes TEXT
-    )""")
-    conn.execute("""CREATE TABLE IF NOT EXISTS health_logs (
-        id INTEGER PRIMARY KEY,
-        plant_id INTEGER,
-        timestamp TEXT,
-        observation TEXT,
-        FOREIGN KEY (plant_id) REFERENCES plants(id)
-    )""")
+    """Initialize all database tables."""
+    with engine.begin() as conn:
+        # Existing tables (keep these)
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS plants (
+                id INTEGER PRIMARY KEY,
+                name TEXT NOT NULL,
+                scientific_name TEXT,
+                watering_frequency_days INTEGER,
+                last_watered DATE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """))
+        
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS health_logs (
+                id INTEGER PRIMARY KEY,
+                plant_id INTEGER,
+                observation TEXT,
+                logged_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY(plant_id) REFERENCES plants(id)
+            )
+        """))
+        
+        # NEW: Conversations table
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS conversations (
+                id INTEGER PRIMARY KEY,
+                chat_id INTEGER,
+                role TEXT,
+                message TEXT,
+                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """))
     conn.commit()
     conn.close()
 
@@ -95,3 +112,41 @@ def build_plant_context():
         last = p['last_watered'][:10] if p['last_watered'] else "never"
         lines.append(f"- {p['name']} ({p['species']}): last watered {last}, every {p['water_freq_days']} days")
     return "Your plants:\n" + "\n".join(lines)
+
+def store_conversation(chat_id, role, message):
+    """Store a message in conversation history."""
+    with Session(engine) as session:
+        try:
+            session.execute(text("""
+                INSERT INTO conversations (chat_id, role, message)
+                VALUES (:chat_id, :role, :message)
+            """), {
+                "chat_id": chat_id,
+                "role": role,
+                "message": message
+            })
+            session.commit()
+            logger.info(f"Conversation stored for chat {chat_id}")
+        except Exception as e:
+            logger.error(f"Failed to store conversation: {e}")
+
+def get_recent_conversations(chat_id, limit=5):
+    """Get last N messages from conversation history."""
+    with Session(engine) as session:
+        try:
+            result = session.execute(text("""
+                SELECT role, message FROM conversations
+                WHERE chat_id = :chat_id
+                ORDER BY timestamp DESC
+                LIMIT :limit
+            """), {
+                "chat_id": chat_id,
+                "limit": limit
+            }).fetchall()
+            
+            # Reverse to get chronological order
+            messages = [{"role": row[0], "content": row[1]} for row in reversed(result)]
+            return messages
+        except Exception as e:
+            logger.error(f"Failed to get conversations: {e}")
+            return []

@@ -10,6 +10,7 @@ from database import build_plant_context
 from prompts import PLANT_CARE_SYSTEM, USER_CONFIG
 from weather import get_watering_adjustment
 from image_handler import download_telegram_image, analyze_plant_image
+from database import build_plant_context, store_conversation, get_recent_conversations
 
 load_dotenv()
 
@@ -52,25 +53,44 @@ def send_telegram_response(message):
         logger.error(f"Error sending Telegram response: {e}")
         return False
 
-def process_telegram_message(user_message):
-    """Process a Telegram message with Claude."""
+def process_telegram_message(user_message, chat_id):
+    """Process a Telegram message with Claude and conversation history."""
     
+    # Get context
     plant_context = build_plant_context()
-    weather_data = get_watering_adjustment()  # Gets cached or fresh if old
+    weather_data = get_watering_adjustment()
     
+    # Get recent conversation history
+    recent_messages = get_recent_conversations(chat_id, limit=5)
+    
+    # Add current user message
+    recent_messages.append({
+        "role": "user",
+        "content": user_message
+    })
+    
+    # Build system prompt
     system_prompt = PLANT_CARE_SYSTEM.format(
         plant_context=plant_context,
         weather_data=weather_data,
         **USER_CONFIG
     )
+    
     try:
         response = client.messages.create(
             model="claude-haiku-4-5",
             max_tokens=300,
             system=system_prompt,
-            messages=[{"role": "user", "content": user_message}]
+            messages=recent_messages
         )
-        return response.content[0].text
+        
+        assistant_message = response.content[0].text
+        
+        # Store both user and assistant messages
+        store_conversation(chat_id, "user", user_message)
+        store_conversation(chat_id, "assistant", assistant_message)
+        
+        return assistant_message
     except Exception as e:
         logger.error(f"Claude error: {e}")
         return f"Sorry, I had an error: {e}"
@@ -92,7 +112,7 @@ def send_batched_response(chat_id):
     
     logger.info(f"Sending batched response for {len(messages)} message(s)")
     
-    response = process_telegram_message(combined_message)
+    response = process_telegram_message(combined_message, chat_id)
     send_telegram_response(response)
     
     # Clear buffer
@@ -132,13 +152,13 @@ def handle_telegram_messages():
                 if chat_id in pending_timers:
                     pending_timers[chat_id].cancel()
                 
-                # Set new timer (wait 3 seconds for more messages)
+                # Set new timer
                 timer = Timer(3.0, send_batched_response, args=[chat_id])
                 timer.daemon = True
                 timer.start()
                 pending_timers[chat_id] = timer
             
-            # Handle image messages (process immediately, don't batch)
+            # Handle images (also store in conversation)
             elif "photo" in message:
                 logger.info("Plant image received")
                 photos = message["photo"]
@@ -148,5 +168,8 @@ def handle_telegram_messages():
                 if base64_image:
                     analysis = analyze_plant_image(base64_image)
                     send_telegram_response(f"🌿 Plant Analysis:\n\n{analysis}")
+                    # Store image conversation
+                    store_conversation(chat_id, "user", "[sent a plant photo]")
+                    store_conversation(chat_id, "assistant", analysis)
                 else:
                     send_telegram_response("Sorry, I couldn't download the image. Try again!")
