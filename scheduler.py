@@ -65,7 +65,8 @@ def start_scheduler():
     )
     
     scheduler.start()
-    logger.info(f"Next scheduled run: {job.next_run_time}")
+    # Print all jobs and their next run times
+    scheduler.print_jobs()
     
     return scheduler
 
