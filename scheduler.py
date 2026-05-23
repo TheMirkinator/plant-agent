@@ -64,7 +64,7 @@ def start_scheduler():
     )
     
     scheduler.start()
-    logger.info("Scheduler started - will check plants daily at 8 AM")
+    logger.info("Scheduler started - will check plants daily at 7:30 AM")
     
     return scheduler
 
