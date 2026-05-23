@@ -1,5 +1,7 @@
 import sqlite3
 from datetime import datetime
+from venv import logger
+from requests import Session
 
 DB_PATH = "plants.db"
 
