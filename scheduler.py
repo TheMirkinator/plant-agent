@@ -1,3 +1,5 @@
+from sched import scheduler
+
 from apscheduler import job
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
@@ -65,8 +67,9 @@ def start_scheduler():
     )
     
     scheduler.start()
-    # Print all jobs and their next run times
-    scheduler.print_jobs()
+    # Log all jobs and their next run times
+    for job in scheduler.get_jobs():
+        logger.info(f"Job: {job.name}, Next run: {job.next_run_time}")
     
     return scheduler
 
