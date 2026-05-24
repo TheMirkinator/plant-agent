@@ -2,7 +2,13 @@ import sqlite3
 from datetime import datetime
 from venv import logger
 from requests import Session
+from logging_setup import logger
+from sqlalchemy import create_engine, text
+from sqlalchemy.orm import Session
+from logging_setup import logger
 
+engine = create_engine("sqlite:///plants.db")
+engine = create_engine("sqlite:///plants.db")
 DB_PATH = "plants.db"
 
 def init_db():
